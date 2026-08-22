@@ -9,6 +9,21 @@ import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { safeReturnTo } from "@/lib/authReturnTo";
 
+function signupErrorMessage(err) {
+  const raw = (err?.message || err?.errorData || err?.error || "").toString().toLowerCase();
+  if (
+    err?.status === 500 ||
+    raw.includes("failed to send verification") ||
+    raw.includes("verification email")
+  ) {
+    return "We created your account but could not send the verification email. Check backend SMTP settings (EMAIL_PROVIDER=smtp) or try Resend verification in a moment.";
+  }
+  if (err?.status === 409 || raw.includes("already exists")) {
+    return "An account with this email already exists. Log in, or resend verification if you have not confirmed yet.";
+  }
+  return err?.message || "Registration failed";
+}
+
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,21 +32,27 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
   const [resendMessage, setResendMessage] = useState("");
+  const [resendLoading, setResendLoading] = useState(false);
+  const [emailDeliveryFailed, setEmailDeliveryFailed] = useState(false);
   const returnTo = safeReturnTo("/app");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setEmailDeliveryFailed(false);
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
     }
     setLoading(true);
     try {
-      await authApi.signup(email, password);
+      const res = await authApi.signup(email, password);
+      if (res?.email_delivery === "failed") {
+        setEmailDeliveryFailed(true);
+      }
       setCheckEmail(true);
     } catch (err) {
-      setError(err.message || "Registration failed");
+      setError(signupErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -40,11 +61,14 @@ export default function Register() {
   const handleResend = async () => {
     setError("");
     setResendMessage("");
+    setResendLoading(true);
     try {
       await authApi.resendVerification(email);
-      setResendMessage("Verification email sent. Check your inbox.");
+      setResendMessage("If that address is unverified, a new verification link was sent. Open the link in the email (not a code).");
     } catch (err) {
       setError(err.message || "Failed to resend verification email");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -69,18 +93,29 @@ export default function Register() {
             <CheckCircle2 className="w-6 h-6" />
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Click the link in the email to verify your account, then sign in. No code needed — Doc-Contract uses an email link.
+            Open the email and click the verification <strong className="text-foreground font-medium">link</strong>
+            — there is no code to type. Then return here and sign in.
           </p>
+          {emailDeliveryFailed && (
+            <div className="p-3 rounded-lg bg-warning/10 text-warning text-sm text-left">
+              We could not send the verification email (mail server issue). Use Resend below after SMTP is configured.
+            </div>
+          )}
           {error && (
             <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm text-left">{error}</div>
           )}
           {resendMessage && (
-            <div className="p-3 rounded-lg bg-success/10 text-success text-sm">{resendMessage}</div>
+            <div className="p-3 rounded-lg bg-success/10 text-success text-sm text-left">{resendMessage}</div>
           )}
           <p className="text-sm text-muted-foreground">
             Didn't get it?{" "}
-            <button type="button" onClick={handleResend} className="text-primary font-medium hover:underline">
-              Resend verification email
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resendLoading}
+              className="text-primary font-medium hover:underline disabled:opacity-50"
+            >
+              {resendLoading ? "Sending…" : "Resend verification email"}
             </button>
           </p>
         </div>

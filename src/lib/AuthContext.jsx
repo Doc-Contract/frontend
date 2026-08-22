@@ -5,6 +5,25 @@ import { clearStoredOrgId, getStoredOrgId, setStoredOrgId } from "@/lib/orgStora
 
 const AuthContext = createContext(null);
 
+function hydrateOrgId(organizations) {
+  const list = Array.isArray(organizations) ? organizations : [];
+  if (!list.length) {
+    clearStoredOrgId();
+    return null;
+  }
+  const stored = getStoredOrgId();
+  if (stored && list.some((o) => o.org_id === stored)) {
+    return stored;
+  }
+  const primary = list[0]?.org_id;
+  if (primary) {
+    setStoredOrgId(primary);
+    return primary;
+  }
+  clearStoredOrgId();
+  return null;
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -23,22 +42,24 @@ export function AuthProvider({ children }) {
     setAuthError(null);
     try {
       const me = await authApi.me();
+      const organizations = me.organizations || [];
+      const resolvedOrgId = hydrateOrgId(organizations);
       setUser({
         id: me.user_id,
         email: me.email,
         full_name: me.email?.split("@")[0] || "User",
-        has_organization: !!me.has_organization,
+        has_organization: !!me.has_organization || organizations.length > 0,
         providers: me.providers || [],
+        organizations,
       });
       setIsAuthenticated(true);
-      if (me.has_organization && !getStoredOrgId()) {
-        // Org exists server-side but client lost org_id — user must re-select/create is not available;
-        // keep null; DashboardRouter will still treat has_organization as onboarded org path when org_id present.
-      }
+      setOrgIdState(resolvedOrgId);
     } catch (err) {
       setUser(null);
       setIsAuthenticated(false);
       if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        setAuthError({ type: "auth_required", message: "Authentication required" });
+      } else if (err?.status === 401 || err?.status === 403) {
         setAuthError({ type: "auth_required", message: "Authentication required" });
       } else if (err) {
         setAuthError({ type: "unknown", message: err.message || "Failed to load session" });
@@ -52,6 +73,11 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     checkUserAuth();
   }, [checkUserAuth]);
+
+  const login = async (email, password) => {
+    await authApi.login(email, password);
+    await checkUserAuth();
+  };
 
   const logout = async (shouldRedirect = true) => {
     try {
@@ -82,6 +108,7 @@ export function AuthProvider({ children }) {
         authError,
         orgId,
         setOrgId,
+        login,
         logout,
         navigateToLogin,
         checkUserAuth,

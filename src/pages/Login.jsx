@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authApi } from "@/api/auth";
-import { useAuthStore } from "@/stores/auth.store";
+import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,26 +10,64 @@ import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { safeReturnTo } from "@/lib/authReturnTo";
 
+function isEmailNotVerified(err) {
+  const code = (err?.errorData || err?.error || "").toString();
+  const msg = (err?.message || "").toString().toLowerCase();
+  return (
+    code === "email_not_verified" ||
+    msg.includes("email_not_verified") ||
+    msg.includes("verify your email") ||
+    (err?.status === 403 && (msg.includes("email") || msg.includes("verify")))
+  );
+}
+
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [needsVerify, setNeedsVerify] = useState(false);
+  const [resendMessage, setResendMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const returnTo = safeReturnTo("/app");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setNeedsVerify(false);
+    setResendMessage("");
     setLoading(true);
     try {
       await login(email, password);
       navigate(returnTo, { replace: true });
     } catch (err) {
-      setError(err.message || "Invalid email or password");
+      if (isEmailNotVerified(err)) {
+        setNeedsVerify(true);
+        setError("Verify your email before logging in. Open the link we sent, or resend it below.");
+      } else {
+        setError(err.message || "Invalid email or password");
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!email.trim()) {
+      setError("Enter your email above, then resend verification.");
+      return;
+    }
+    setResendMessage("");
+    setResendLoading(true);
+    try {
+      await authApi.resendVerification(email.trim());
+      setResendMessage("If an unverified account exists for that email, a new verification link was sent.");
+    } catch (err) {
+      setError(err.message || "Failed to resend verification email");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -69,7 +107,22 @@ export default function Login() {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>
+        <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm space-y-2">
+          <p>{error}</p>
+          {needsVerify && (
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resendLoading}
+              className="text-primary font-medium hover:underline disabled:opacity-50"
+            >
+              {resendLoading ? "Sending…" : "Resend verification email"}
+            </button>
+          )}
+        </div>
+      )}
+      {resendMessage && (
+        <div className="mb-4 p-3 rounded-lg bg-success/10 text-success text-sm">{resendMessage}</div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">

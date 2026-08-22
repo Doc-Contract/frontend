@@ -38,8 +38,9 @@ export default function ForgotPassword() {
       }
     >
       {sent ? (
-        <p className="text-sm text-foreground text-center">
-          If an account exists with that email, you'll receive a password reset link shortly.
+        <p className="text-sm text-foreground text-center leading-relaxed">
+          If an account exists with that email, you'll receive a password reset <strong className="font-medium">link</strong> shortly.
+          Open the link (it goes to this app's reset page) — no code to type.
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">

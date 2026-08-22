@@ -13,6 +13,7 @@ import ResetPassword from "@/pages/ResetPassword";
 import VerifyEmail from "@/pages/VerifyEmail";
 import Landing from "@/pages/Landing";
 import VerifyDocument from "@/pages/verify/VerifyDocument";
+import SignDocument from "@/pages/sign/SignDocument";
 import Onboarding from "@/pages/Onboarding";
 import DashboardRouter from "@/pages/dashboard/DashboardRouter";
 import OrgLayout from "@/pages/dashboard/OrgLayout";
@@ -22,6 +23,8 @@ import OrgOverview from "@/pages/dashboard/org/OrgOverview";
 import IndividualOverview from "@/pages/dashboard/individual/IndividualOverview";
 import AdminOverview from "@/pages/dashboard/admin/AdminOverview";
 import PlaceholderPage from "@/pages/dashboard/PlaceholderPage";
+import IssueEnvelope from "@/pages/dashboard/org/IssueEnvelope";
+import EnvelopeList from "@/pages/dashboard/org/EnvelopeList";
 
 const PH = (title, description) => <PlaceholderPage title={title} description={description} />;
 
@@ -34,6 +37,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/verify" element={<VerifyDocument />} />
+            <Route path="/sign/:token" element={<SignDocument />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -46,17 +50,83 @@ function App() {
 
               <Route path="/app/organization" element={<OrgLayout />}>
                 <Route index element={<OrgOverview />} />
-                <Route path="issue" element={PH("Issue Document", "Upload a PDF and create an envelope via Doc-Contract when this screen is wired.")} />
-                <Route path="issued" element={PH("Issued Documents", "Browse envelopes your organization has sent.")} />
-                <Route path="verify" element={PH("Verify Document", "Use the public /verify page with an envelope UUID.")} />
+                <Route
+                  path="issue"
+                  element={
+                    <IssueEnvelope
+                      title="Issue document"
+                      subtitle="Upload a PDF, create an envelope, add a signer, and send."
+                    />
+                  }
+                />
+                <Route
+                  path="issued"
+                  element={
+                    <EnvelopeList
+                      title="Issued documents"
+                      subtitle="All envelopes your organization has created."
+                      filter="all"
+                    />
+                  }
+                />
+                <Route path="verify" element={<Navigate to="/verify" replace />} />
                 <Route
                   path="revoked"
-                  element={PH("Revoked and Superseded", "Voided envelopes will appear here once wired.")}
+                  element={
+                    <EnvelopeList
+                      title="Revoked and superseded"
+                      subtitle="Voided or revoked envelopes."
+                      filter="revoked"
+                      emptyTitle="No voided envelopes"
+                      emptyDescription="Voided envelopes will appear here."
+                    />
+                  }
                 />
-                <Route path="send" element={PH("Send for Signature", "Create envelope, add signers, and send.")} />
-                <Route path="drafts" element={PH("Drafts", "Draft envelopes before send.")} />
-                <Route path="awaiting" element={PH("Awaiting Signatures", "Envelopes waiting on recipients.")} />
-                <Route path="completed" element={PH("Completed", "Fully signed envelopes.")} />
+                <Route
+                  path="send"
+                  element={
+                    <IssueEnvelope
+                      title="Send for signature"
+                      subtitle="Upload a PDF, add a signer, and email a signing link."
+                    />
+                  }
+                />
+                <Route
+                  path="drafts"
+                  element={
+                    <EnvelopeList
+                      title="Drafts"
+                      subtitle="Draft envelopes before send."
+                      filter="draft"
+                      emptyTitle="No drafts"
+                      emptyDescription="Draft envelopes appear here before you send them."
+                    />
+                  }
+                />
+                <Route
+                  path="awaiting"
+                  element={
+                    <EnvelopeList
+                      title="Awaiting signatures"
+                      subtitle="Envelopes waiting on recipients."
+                      filter="awaiting"
+                      emptyTitle="Nothing awaiting"
+                      emptyDescription="Sent envelopes pending signature show up here."
+                    />
+                  }
+                />
+                <Route
+                  path="completed"
+                  element={
+                    <EnvelopeList
+                      title="Completed"
+                      subtitle="Fully signed envelopes."
+                      filter="completed"
+                      emptyTitle="No completed envelopes"
+                      emptyDescription="Completed envelopes will appear here after all signers finish."
+                    />
+                  }
+                />
                 <Route path="team" element={PH("Team Members", "Invite members with POST /orgs/invite.")} />
                 <Route path="verification" element={PH("Organization Verification", "Org tenancy is managed by Doc-Contract membership.")} />
                 <Route path="audit" element={PH("Audit Trail", "Evidence lives on GET /verify/{envelope_id}.")} />

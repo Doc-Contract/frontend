@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { verifyApi } from "@/api/verify";
-import { ApiError } from "@/api/client";
+import { ApiError, apiBaseUrl } from "@/api/client";
 import Logo from "@/components/Logo";
 import StatusBadge from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -61,12 +61,14 @@ const RESULT_CONFIG = {
 };
 
 function verifyUiUrl(envelopeId) {
-  return `http://localhost:8080/verify-ui?envelope_id=${encodeURIComponent(envelopeId)}`;
+  const apiOrigin = apiBaseUrl().replace(/\/api\/v1\/?$/, "");
+  return `${apiOrigin}/verify-ui?envelope_id=${encodeURIComponent(envelopeId)}`;
 }
 
 export default function VerifyDocument() {
+  const [searchParams] = useSearchParams();
   const [tab, setTab] = useState("id");
-  const [envelopeId, setEnvelopeId] = useState("");
+  const [envelopeId, setEnvelopeId] = useState(() => searchParams.get("envelope_id") || "");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
@@ -113,6 +115,15 @@ export default function VerifyDocument() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const fromQuery = searchParams.get("envelope_id");
+    if (fromQuery) {
+      setEnvelopeId(fromQuery);
+      runVerification(fromQuery);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once when query is present
+  }, []);
 
   const handleIdSubmit = (e) => {
     e.preventDefault();

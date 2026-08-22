@@ -17,6 +17,14 @@ export const envelopesApi = {
   list: (orgId) => apiFetch("/envelopes", { withOrg: true, orgId }),
   create: (body, orgId) =>
     apiFetch("/envelopes", { method: "POST", body, withOrg: true, orgId }),
+  get: (id, orgId) => apiFetch(`/envelopes/${id}`, { withOrg: true, orgId }),
+  addSigner: (id, { email, name }, orgId) =>
+    apiFetch(`/envelopes/${id}/signers`, {
+      method: "POST",
+      body: { email, name: name || "" },
+      withOrg: true,
+      orgId,
+    }),
   send: (id, orgId) =>
     apiFetch(`/envelopes/${id}/send`, { method: "POST", withOrg: true, orgId }),
 };
