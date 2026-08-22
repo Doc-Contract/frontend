@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authApi } from "@/api/auth";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,7 @@ import { safeReturnTo } from "@/lib/authReturnTo";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { checkUserAuth } = useAuth();
+  const { login } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,8 +24,7 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await authApi.login(email, password);
-      await checkUserAuth();
+      await login(email, password);
       navigate(returnTo, { replace: true });
     } catch (err) {
       setError(err.message || "Invalid email or password");

@@ -1,20 +1,20 @@
-import { apiFetch, googleOAuthRedirectUrl } from "@/api/client";
+import { axiosInstance, googleOAuthRedirectUrl } from "@/api/axiosInstance";
 
 export const authApi = {
-  me: () => apiFetch("/auth/me"),
+  me: () => axiosInstance.get("/auth/me"),
   signup: (email, password) =>
-    apiFetch("/auth/signup", { method: "POST", body: { email, password } }),
+    axiosInstance.post("/auth/signup", { email, password }),
   login: (email, password) =>
-    apiFetch("/auth/login", { method: "POST", body: { email, password } }),
-  logout: () => apiFetch("/auth/logout", { method: "POST" }),
+    axiosInstance.post("/auth/login", { email, password }),
+  logout: () => axiosInstance.post("/auth/logout"),
   verifyEmail: (token) =>
-    apiFetch("/auth/verify-email", { method: "POST", body: { token } }),
+    axiosInstance.post("/auth/verify-email", { token }),
   resendVerification: (email) =>
-    apiFetch("/auth/resend-verification", { method: "POST", body: { email } }),
+    axiosInstance.post("/auth/resend-verification", { email }),
   forgotPassword: (email) =>
-    apiFetch("/auth/forgot-password", { method: "POST", body: { email } }),
+    axiosInstance.post("/auth/forgot-password", { email }),
   resetPassword: (token, new_password) =>
-    apiFetch("/auth/reset-password", { method: "POST", body: { token, new_password } }),
+    axiosInstance.post("/auth/reset-password", { token, new_password }),
   startGoogle: () => {
     window.location.href = googleOAuthRedirectUrl();
   },
