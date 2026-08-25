@@ -92,7 +92,7 @@ export default function VerifyEmail() {
       }
     >
       <p className="text-sm text-muted-foreground text-center mb-6">
-        Thanks — your email is confirmed. Sign in to continue to TrustDocs.
+        Thanks — your email is confirmed. Sign in with your password to continue.
       </p>
       <Link to="/login" className="block">
         <Button className="w-full h-12 font-medium">Go to log in</Button>
