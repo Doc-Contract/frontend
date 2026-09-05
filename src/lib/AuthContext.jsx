@@ -47,10 +47,14 @@ export function AuthProvider({ children }) {
       setUser({
         id: me.user_id,
         email: me.email,
-        full_name: me.email?.split("@")[0] || "User",
+        full_name: me.full_name || me.email?.split("@")[0] || "User",
+        country: me.country,
+        website: me.website,
+        account_type: me.account_type,
         has_organization: !!me.has_organization || organizations.length > 0,
         providers: me.providers || [],
         organizations,
+        is_admin: me.is_admin || false,
       });
       setIsAuthenticated(true);
       setOrgIdState(resolvedOrgId);

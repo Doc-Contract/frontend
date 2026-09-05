@@ -24,6 +24,15 @@ const navGroups = [
   },
 ];
 
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/lib/AuthContext";
+
 export default function AdminLayout() {
+  const { user } = useAuth();
+
+  if (!user?.is_admin) {
+    return <Navigate to="/app" replace />;
+  }
+
   return <DashboardLayout navGroups={navGroups} roleLabel="TrustDocs Admin" />;
 }

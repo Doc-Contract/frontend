@@ -4,25 +4,6 @@ import { useAuth } from "@/lib/AuthContext";
 import { getStoredOrgId } from "@/lib/orgStorage";
 import { Loader2 } from "lucide-react";
 
-const ACCOUNT_TYPE_KEY = "trustdocs_account_type";
-const SHELL_KEY = "trustdocs_shell";
-
-function readAccountType() {
-  try {
-    return sessionStorage.getItem(ACCOUNT_TYPE_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function readShell() {
-  try {
-    return sessionStorage.getItem(SHELL_KEY);
-  } catch {
-    return null;
-  }
-}
-
 export default function DashboardRouter() {
   const { user, isAuthenticated, authChecked } = useAuth();
   const [state, setState] = useState("loading");
@@ -34,13 +15,12 @@ export default function DashboardRouter() {
       return;
     }
 
-    // Never set trustdocs_shell=admin in app code; only honor if already present.
-    if (readShell() === "admin") {
+    if (user.is_admin) {
       setState("admin");
       return;
     }
 
-    const accountType = readAccountType();
+    const accountType = user.account_type;
     const orgId = getStoredOrgId();
 
     if (accountType === "organization") {
@@ -58,12 +38,7 @@ export default function DashboardRouter() {
       return;
     }
 
-    // No account_type yet — prefer onboarding unless org context already exists.
-    if (orgId || user.has_organization) {
-      setState("org");
-      return;
-    }
-
+    // Unset or unknown account_type means they haven't completed onboarding
     setState("onboard");
   }, [authChecked, isAuthenticated, user]);
 
