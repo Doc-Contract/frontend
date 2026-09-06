@@ -138,39 +138,26 @@ export default function Login() {
           setLoading(false);
           return;
         }
-        navigate("/app/admin", { replace: true });
-        return;
       }
 
       // 2. University portal check: Must NOT be an individual account
-      if (portal === "university") {
+      else if (portal === "university") {
         if (loggedUser?.account_type === "individual") {
           await logout(false);
           setError("Account Role Mismatch: This account is registered as an Individual. Please switch to the Individual portal above to log in.");
           setLoading(false);
           return;
         }
-
-        const org = loggedUser?.organizations?.[0];
-        if (org && org.status === "pending") {
-          navigate("/app/organization/pending", { replace: true });
-          return;
-        }
-
-        navigate("/app/organization", { replace: true });
-        return;
       }
 
       // 3. Individual portal check: If registered as organization, direct to university portal
-      if (portal === "individual") {
+      else if (portal === "individual") {
         if (loggedUser?.account_type === "organization" && !loggedUser?.is_admin) {
           await logout(false);
           setError("Account Role Mismatch: This account is registered as an Institutional/University account. Please switch to the University portal above to access your issuing workspace.");
           setLoading(false);
           return;
         }
-        navigate("/app/individual", { replace: true });
-        return;
       }
 
       navigate(returnTo, { replace: true });
@@ -308,7 +295,7 @@ export default function Login() {
 
             {/* Footer */}
             <div className="text-xs text-slate-400">
-              © 2024 TrustDocs. All rights reserved.
+              © 2026 TrustDocs. All rights reserved.
             </div>
           </div>
         </div>
@@ -374,11 +361,10 @@ export default function Login() {
                         key={p.id}
                         type="button"
                         onClick={() => handlePortalSwitch(p.id)}
-                        className={`py-2 px-1 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-                          active
+                        className={`py-2 px-1 rounded-xl transition-all flex items-center justify-center gap-1.5 ${active
                             ? "bg-white text-slate-900 shadow-sm font-bold"
                             : "text-slate-500 hover:text-slate-900 font-medium"
-                        }`}
+                          }`}
                       >
                         <IconComp className="w-3.5 h-3.5" />
                         <span>{p.label}</span>
