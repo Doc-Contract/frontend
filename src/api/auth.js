@@ -4,8 +4,8 @@ export const authApi = {
   me: () => axiosInstance.get("/auth/me"),
   signup: (email, password) =>
     axiosInstance.post("/auth/signup", { email, password }),
-  login: (email, password) =>
-    axiosInstance.post("/auth/login", { email, password }),
+  login: (email, password, portal) =>
+    axiosInstance.post("/auth/login", { email, password, portal }),
   logout: () => axiosInstance.post("/auth/logout"),
   verifyEmail: (token) =>
     axiosInstance.post("/auth/verify-email", { token }),

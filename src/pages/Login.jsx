@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authApi } from "@/api/auth";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,8 @@ import {
   AlertCircle,
   CheckCircle2,
   Search,
+  User,
+  GraduationCap,
 } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import { safeReturnTo } from "@/lib/authReturnTo";
@@ -24,6 +26,44 @@ import { safeReturnTo } from "@/lib/authReturnTo";
 import trustDocsLogin from "@/assets/login.png";
 import logoImg from "@/assets/logo.png";
 
+const PORTAL_META = {
+  individual: {
+    id: "individual",
+    name: "Individual",
+    title: "Individual Login",
+    subtitle: "Log in to your personal document vault",
+    badge: "Students & Recipients",
+    badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
+    icon: User,
+    accent: "from-blue-600 to-indigo-600",
+    iconBg: "bg-blue-50 text-blue-600 border-blue-100",
+    showGoogle: true,
+  },
+  university: {
+    id: "university",
+    name: "University",
+    title: "University Portal",
+    subtitle: "Institutional document issuing & verification workspace",
+    badge: "Universities & Issuers",
+    badgeClass: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    icon: GraduationCap,
+    accent: "from-indigo-600 to-purple-600",
+    iconBg: "bg-indigo-50 text-indigo-600 border-indigo-100",
+    showGoogle: true,
+  },
+  admin: {
+    id: "admin",
+    name: "Admin",
+    title: "Admin Portal",
+    subtitle: "Restricted system administration & compliance audit",
+    badge: "System Governance",
+    badgeClass: "bg-amber-50 text-amber-800 border-amber-200",
+    icon: ShieldCheck,
+    accent: "from-slate-800 to-indigo-950",
+    iconBg: "bg-amber-50 text-amber-600 border-amber-100",
+    showGoogle: false,
+  },
+};
 
 function isEmailNotVerified(err) {
   const code = (err?.errorData || err?.error || "").toString();
@@ -40,7 +80,27 @@ function isEmailNotVerified(err) {
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { login, logout } = useAuth();
+
+  const urlPortal = searchParams.get("portal")?.toLowerCase();
+  const [portal, setPortal] = useState(
+    urlPortal === "admin" || urlPortal === "university" ? urlPortal : "individual"
+  );
+
+  useEffect(() => {
+    if (urlPortal === "admin" || urlPortal === "university" || urlPortal === "individual") {
+      setPortal(urlPortal);
+    }
+  }, [urlPortal]);
+
+  const handlePortalSwitch = (newPortal) => {
+    setPortal(newPortal);
+    setError("");
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("portal", newPortal);
+    setSearchParams(newParams, { replace: true });
+  };
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -58,10 +118,61 @@ export default function Login() {
     setError("");
     setNeedsVerify(false);
     setResendMessage("");
+
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
+      setError("Please enter your email address");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await login(email, password);
+      const loggedUser = await login(cleanEmail, password, portal);
+
+      // 1. Admin portal check: Must be an administrator
+      if (portal === "admin") {
+        if (!loggedUser?.is_admin) {
+          await logout(false);
+          setError("Access Denied: This account does not have administrator privileges. Please switch to the Individual or University portal.");
+          setLoading(false);
+          return;
+        }
+        navigate("/app/admin", { replace: true });
+        return;
+      }
+
+      // 2. University portal check: Must NOT be an individual account
+      if (portal === "university") {
+        if (loggedUser?.account_type === "individual") {
+          await logout(false);
+          setError("Account Role Mismatch: This account is registered as an Individual. Please switch to the Individual portal above to log in.");
+          setLoading(false);
+          return;
+        }
+
+        const org = loggedUser?.organizations?.[0];
+        if (org && org.status === "pending") {
+          navigate("/app/organization/pending", { replace: true });
+          return;
+        }
+
+        navigate("/app/organization", { replace: true });
+        return;
+      }
+
+      // 3. Individual portal check: If registered as organization, direct to university portal
+      if (portal === "individual") {
+        if (loggedUser?.account_type === "organization" && !loggedUser?.is_admin) {
+          await logout(false);
+          setError("Account Role Mismatch: This account is registered as an Institutional/University account. Please switch to the University portal above to access your issuing workspace.");
+          setLoading(false);
+          return;
+        }
+        navigate("/app/individual", { replace: true });
+        return;
+      }
+
       navigate(returnTo, { replace: true });
     } catch (err) {
       if (isEmailNotVerified(err)) {
@@ -249,50 +360,90 @@ export default function Login() {
               ================================================== */}
               <div className="bg-white rounded-3xl border border-slate-200/80 shadow-[0_25px_70px_-20px_rgba(15,23,42,0.20)] p-6 sm:p-8">
 
-                {/* Header */}
-                <div className="text-center mb-6">
-
-                  <div className="mx-auto mb-4 w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
-                    <LogIn className="w-5 h-5" />
-                  </div>
-
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-                    Welcome back
-                  </h1>
-
-                  <p className="mt-1.5 text-sm text-slate-500">
-                    Log in to your TrustDocs account
-                  </p>
-
+                {/* Portal Switcher Tabs */}
+                <div className="grid grid-cols-3 p-1 rounded-2xl bg-slate-100/90 mb-6 text-xs font-semibold">
+                  {[
+                    { id: "individual", label: "Individual", icon: User },
+                    { id: "university", label: "University", icon: GraduationCap },
+                    { id: "admin", label: "Admin", icon: ShieldCheck },
+                  ].map((p) => {
+                    const active = portal === p.id;
+                    const IconComp = p.icon;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => handlePortalSwitch(p.id)}
+                        className={`py-2 px-1 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                          active
+                            ? "bg-white text-slate-900 shadow-sm font-bold"
+                            : "text-slate-500 hover:text-slate-900 font-medium"
+                        }`}
+                      >
+                        <IconComp className="w-3.5 h-3.5" />
+                        <span>{p.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
+
+                {/* Dynamic Portal Header */}
+                {(() => {
+                  const activeMeta = PORTAL_META[portal] || PORTAL_META.individual;
+                  const ActiveIcon = activeMeta.icon;
+                  return (
+                    <div className="text-center mb-6">
+                      <div
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border mb-3.5 ${activeMeta.badgeClass}`}
+                      >
+                        <ActiveIcon className="w-3 h-3" />
+                        <span>{activeMeta.badge}</span>
+                      </div>
+
+                      <div
+                        className={`mx-auto mb-3 w-12 h-12 rounded-2xl border flex items-center justify-center ${activeMeta.iconBg}`}
+                      >
+                        <ActiveIcon className="w-5 h-5" />
+                      </div>
+
+                      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+                        {activeMeta.title}
+                      </h1>
+
+                      <p className="mt-1.5 text-xs sm:text-sm text-slate-500">
+                        {activeMeta.subtitle}
+                      </p>
+                    </div>
+                  );
+                })()}
 
                 {/* =================================================
-                    GOOGLE LOGIN
+                    GOOGLE LOGIN (Hidden on Admin portal)
                 ================================================== */}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleGoogle}
-                  className="w-full h-11 rounded-xl border-slate-200 bg-white hover:bg-slate-50 text-sm font-medium shadow-sm transition-all"
-                >
-                  <GoogleIcon className="w-5 h-5 mr-3" />
-                  Continue with Google
-                </Button>
+                {(PORTAL_META[portal] || PORTAL_META.individual).showGoogle && (
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleGoogle}
+                      className="w-full h-11 rounded-xl border-slate-200 bg-white hover:bg-slate-50 text-sm font-medium shadow-sm transition-all"
+                    >
+                      <GoogleIcon className="w-5 h-5 mr-3" />
+                      Continue with Google
+                    </Button>
 
-                {/* Divider */}
-                <div className="relative my-5">
-
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-slate-200" />
-                  </div>
-
-                  <div className="relative flex justify-center">
-                    <span className="bg-white px-3 text-[11px] font-medium uppercase tracking-wider text-slate-400">
-                      or
-                    </span>
-                  </div>
-
-                </div>
+                    <div className="relative my-5">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-slate-200" />
+                      </div>
+                      <div className="relative flex justify-center">
+                        <span className="bg-white px-3 text-[11px] font-medium uppercase tracking-wider text-slate-400">
+                          or
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {/* =================================================
                     ERROR MESSAGE
@@ -309,6 +460,28 @@ export default function Login() {
                         <p className="text-red-700 leading-5">
                           {error}
                         </p>
+
+                        {error.includes("Individual portal") && portal !== "individual" && (
+                          <button
+                            type="button"
+                            onClick={() => handlePortalSwitch("individual")}
+                            className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-100/90 text-xs font-bold text-red-800 hover:bg-red-200 transition-colors"
+                          >
+                            <span>Switch to Individual Portal</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+                        )}
+
+                        {error.includes("University portal") && portal !== "university" && (
+                          <button
+                            type="button"
+                            onClick={() => handlePortalSwitch("university")}
+                            className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-100/90 text-xs font-bold text-red-800 hover:bg-red-200 transition-colors"
+                          >
+                            <span>Switch to University Portal</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+                        )}
 
                         {needsVerify && (
                           <button
@@ -459,12 +632,10 @@ export default function Login() {
                 </form>
 
                 {/* =================================================
-                    REGISTER
+                    REGISTER & PORTAL SWITCH
                 ================================================== */}
                 <div className="mt-5 pt-5 border-t border-slate-100 text-center text-sm text-slate-500">
-
                   Don't have an account?{" "}
-
                   <Link
                     to={
                       "/register" +
@@ -478,6 +649,15 @@ export default function Login() {
                     Create one
                   </Link>
 
+                  <div className="mt-3 pt-3 border-t border-slate-100">
+                    <Link
+                      to="/choose-portal"
+                      className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-indigo-600 font-medium transition-colors"
+                    >
+                      <span>Need a different portal? Choose Portal</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
                 </div>
 
               </div>
