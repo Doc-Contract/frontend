@@ -44,7 +44,7 @@ export function AuthProvider({ children }) {
       const me = await authApi.me();
       const organizations = me.organizations || [];
       const resolvedOrgId = hydrateOrgId(organizations);
-      setUser({
+      const profile = {
         id: me.user_id,
         email: me.email,
         full_name: me.full_name || me.email?.split("@")[0] || "User",
@@ -55,9 +55,11 @@ export function AuthProvider({ children }) {
         providers: me.providers || [],
         organizations,
         is_admin: me.is_admin || false,
-      });
+      };
+      setUser(profile);
       setIsAuthenticated(true);
       setOrgIdState(resolvedOrgId);
+      return profile;
     } catch (err) {
       setUser(null);
       setIsAuthenticated(false);
@@ -68,6 +70,7 @@ export function AuthProvider({ children }) {
       } else if (err) {
         setAuthError({ type: "unknown", message: err.message || "Failed to load session" });
       }
+      return null;
     } finally {
       setIsLoadingAuth(false);
       setAuthChecked(true);
@@ -78,9 +81,26 @@ export function AuthProvider({ children }) {
     checkUserAuth();
   }, [checkUserAuth]);
 
-  const login = async (email, password) => {
-    await authApi.login(email, password);
-    await checkUserAuth();
+  const login = async (email, password, portal) => {
+    const res = await authApi.login(email, password, portal);
+    if (res?.user_id) {
+      const organizations = res.organizations || [];
+      const resolvedOrgId = hydrateOrgId(organizations);
+      const profile = {
+        id: res.user_id,
+        email: res.email,
+        full_name: res.full_name || res.email?.split("@")[0] || "User",
+        account_type: res.account_type,
+        has_organization: !!res.has_organization || organizations.length > 0,
+        organizations,
+        is_admin: res.is_admin || false,
+      };
+      setUser(profile);
+      setIsAuthenticated(true);
+      setOrgIdState(resolvedOrgId);
+      return profile;
+    }
+    return await checkUserAuth();
   };
 
   const logout = async (shouldRedirect = true) => {

@@ -28,7 +28,12 @@ export default function DashboardRouter() {
       if (!user.has_organization && !orgId) {
         setState("onboard");
       } else {
-        setState("org");
+        const org = user.organizations?.[0];
+        if (org && org.status === "pending") {
+          setState("pending");
+        } else {
+          setState("org");
+        }
       }
       return;
     }
@@ -51,6 +56,7 @@ export default function DashboardRouter() {
   }
   if (state === "login") return <Navigate to="/login" replace />;
   if (state === "onboard") return <Navigate to="/onboarding" replace />;
+  if (state === "pending") return <Navigate to="/app/organization/pending" replace />;
   if (state === "org") return <Navigate to="/app/organization" replace />;
   if (state === "admin") return <Navigate to="/app/admin" replace />;
   return <Navigate to="/app/individual" replace />;

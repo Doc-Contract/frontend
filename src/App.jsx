@@ -12,6 +12,7 @@ import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import VerifyEmail from "@/pages/VerifyEmail";
 import Landing from "@/pages/Landing";
+import PortalSelect from "@/pages/PortalSelect";
 import VerifyDocument from "@/pages/verify/VerifyDocument";
 import SignDocument from "@/pages/sign/SignDocument";
 import Onboarding from "@/pages/Onboarding";
@@ -20,6 +21,7 @@ import OrgLayout from "@/pages/dashboard/OrgLayout";
 import IndividualLayout from "@/pages/dashboard/IndividualLayout";
 import AdminLayout from "@/pages/dashboard/AdminLayout";
 import OrgOverview from "@/pages/dashboard/org/OrgOverview";
+import ApprovalPending from "@/pages/dashboard/org/ApprovalPending";
 import IndividualOverview from "@/pages/dashboard/individual/IndividualOverview";
 import AdminOverview from "@/pages/dashboard/admin/AdminOverview";
 import PlaceholderPage from "@/pages/dashboard/PlaceholderPage";
@@ -36,6 +38,8 @@ function App() {
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route path="/choose-portal" element={<PortalSelect />} />
+            <Route path="/portal" element={<Navigate to="/choose-portal" replace />} />
             <Route path="/verify" element={<VerifyDocument />} />
             <Route path="/sign/:token" element={<SignDocument />} />
             <Route path="/login" element={<Login />} />
@@ -47,6 +51,7 @@ function App() {
             <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/app" element={<DashboardRouter />} />
+              <Route path="/app/organization/pending" element={<ApprovalPending />} />
 
               <Route path="/app/organization" element={<OrgLayout />}>
                 <Route index element={<OrgOverview />} />

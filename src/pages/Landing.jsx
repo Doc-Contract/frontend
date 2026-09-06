@@ -54,7 +54,7 @@ export default function Landing() {
               </Link>
             ) : (
               <>
-                <Link to="/login" className="hidden sm:inline-flex">
+                <Link to="/choose-portal" className="hidden sm:inline-flex">
                   <Button variant="ghost" size="sm">
                     Sign in
                   </Button>
