@@ -21,7 +21,6 @@ export default function WalletStep({
   errors,
   walletBusy,
   linkMetaMask,
-  skipWallet,
 }) {
   const isLinked =
     data.wallet_status === "linked" &&
@@ -32,9 +31,9 @@ export default function WalletStep({
 
       {/* HEADER */}
       <StepHeader
-        eyebrow="DIGITAL IDENTITY · OPTIONAL"
+        eyebrow="DIGITAL IDENTITY · REQUIRED"
         title="Connect your wallet."
-        description="Use your blockchain wallet to prove ownership of an address and strengthen your TrustDocs identity."
+        description="A MetaMask wallet is required to issue and sign documents on TrustDocs. This proves your blockchain identity."
       />
 
       {/* SECURITY CARD */}
@@ -222,17 +221,22 @@ export default function WalletStep({
               : "Connect MetaMask"}
           </Button>
 
-          <Button
-            variant="ghost"
-            className="w-full h-11 text-slate-500 hover:text-slate-900"
-            onClick={skipWallet}
-            disabled={walletBusy}
-          >
-            Skip for now
-          </Button>
+          {!window.ethereum && (
+            <p className="mt-2 text-center text-xs text-slate-500">
+              MetaMask not detected.{" "}
+              <a
+                href="https://metamask.io/download/"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-primary underline-offset-2 hover:underline"
+              >
+                Install MetaMask
+              </a>{" "}
+              to continue.
+            </p>
+          )}
         </div>
-      )
-      }
+      )}
 
       {/* FOOTNOTE */}
       <div className="mt-6 flex items-start gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4">

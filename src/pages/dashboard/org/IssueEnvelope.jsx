@@ -5,7 +5,7 @@ import { documentsApi, envelopesApi } from "@/api/documents";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Upload, Send, CheckCircle2, ExternalLink, Copy } from "lucide-react";
+import { Loader2, Upload, Send, CheckCircle2, ExternalLink, Copy, ShieldAlert, Wallet } from "lucide-react";
 
 /**
  * Upload PDF → create draft envelope → add signer → send.
@@ -15,7 +15,7 @@ export default function IssueEnvelope({
   title = "Send for signature",
   subtitle = "Upload a PDF, add a signer, and email a signing link.",
 }) {
-  const { orgId } = useAuth();
+  const { orgId, user, organizations } = useAuth();
   const [docTitle, setDocTitle] = useState("");
   const [file, setFile] = useState(null);
   const [signerEmail, setSignerEmail] = useState("");
@@ -23,6 +23,13 @@ export default function IssueEnvelope({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
+
+  // Check if current org is verified
+  const currentOrg = (user?.organizations || []).find((o) => o.org_id === orgId);
+  const isOrgVerified = currentOrg?.is_verified === true;
+
+  // Check if user has a linked Ethereum wallet
+  const hasWallet = (user?.providers || []).some((p) => p.provider === "ethereum");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,6 +96,38 @@ export default function IssueEnvelope({
         <h1 className="text-2xl font-semibold tracking-tight text-foreground font-heading">{title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
       </div>
+
+      {/* Guard: Org not verified */}
+      {!isOrgVerified && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
+          <div className="flex items-start gap-3">
+            <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+            <div>
+              <p className="text-sm font-semibold text-amber-900">Organization pending verification</p>
+              <p className="mt-1 text-sm leading-6 text-amber-700">
+                Your organization must be verified by a TrustDocs admin before you can issue documents.
+                Please contact support or wait for admin approval.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Guard: No wallet linked */}
+      {isOrgVerified && !hasWallet && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-5">
+          <div className="flex items-start gap-3">
+            <Wallet className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+            <div>
+              <p className="text-sm font-semibold text-red-900">Wallet connection required</p>
+              <p className="mt-1 text-sm leading-6 text-red-700">
+                A MetaMask wallet must be linked to your account before you can issue documents.
+                Please link your wallet in account settings.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {result ? (
         <div className="rounded-xl border border-success/30 bg-success/5 p-5 space-y-4">
@@ -187,7 +226,7 @@ export default function IssueEnvelope({
               placeholder="Jane Doe"
             />
           </div>
-          <Button type="submit" className="w-full h-11" disabled={loading || !orgId}>
+          <Button type="submit" className="w-full h-11" disabled={loading || !orgId || !isOrgVerified || !hasWallet}>
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -200,9 +239,12 @@ export default function IssueEnvelope({
               </>
             )}
           </Button>
-          {!orgId && (
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <Upload className="w-3.5 h-3.5" /> Organization context missing — complete onboarding first.
+          {(!isOrgVerified || !hasWallet) && !loading && (
+            <p className="text-xs text-amber-600 flex items-center gap-1">
+              <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+              {!isOrgVerified
+                ? "Your organization must be verified by an admin before issuing documents."
+                : "A connected MetaMask wallet is required to issue documents."}
             </p>
           )}
         </form>

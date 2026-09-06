@@ -509,7 +509,7 @@ export default function Onboarding() {
 
                 <Button
                   onClick={handleContinue}
-                  disabled={saving || walletBusy}
+                  disabled={saving || walletBusy || (step === 2 && data.wallet_status !== "linked")}
                   className="min-w-[120px] shadow-sm shadow-primary/20"
                 >
                   Continue

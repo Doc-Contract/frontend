@@ -10,4 +10,8 @@ export const orgsApi = {
       orgId,
       withOrg: true,
     }),
+  getPending: () =>
+    apiFetch("/admin/orgs/pending", { method: "GET" }),
+  verify: (orgId) =>
+    apiFetch(`/admin/orgs/${orgId}/verify`, { method: "POST" }),
 };
