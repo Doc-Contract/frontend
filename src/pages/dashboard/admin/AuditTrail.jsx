@@ -236,9 +236,9 @@ export default function AuditTrail() {
                 {logs.map((log) => {
                   const dateStr = log.created_at
                     ? new Date(log.created_at).toLocaleString(undefined, {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })
                     : "—";
 
                   return (

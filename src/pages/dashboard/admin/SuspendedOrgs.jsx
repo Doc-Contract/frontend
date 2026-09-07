@@ -49,9 +49,8 @@ export default function SuspendedOrgs() {
       {/* TOAST */}
       {toastMsg && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-xl px-5 py-4 text-sm font-medium shadow-xl transition-all ${
-            toastMsg.startsWith("✓") ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
-          }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-xl px-5 py-4 text-sm font-medium shadow-xl transition-all ${toastMsg.startsWith("✓") ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
+            }`}
         >
           {toastMsg.startsWith("✓") ? (
             <CheckCircle2 className="h-4 w-4 shrink-0" />

@@ -57,6 +57,7 @@
     background-image: radial-gradient(hsl(222 47% 18% / 0.04) 1px, transparent 1px);
     background-size: 22px 22px;
   }
+
   .text-balance {
     text-wrap: balance;
   }
