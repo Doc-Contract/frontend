@@ -192,7 +192,17 @@ export default function VerifyDocument() {
     runVerification(envelopeId);
   };
 
-  const cfg = result ? RESULT_CONFIG[result.kind] : null;
+  let cfg = result ? RESULT_CONFIG[result.kind] : null;
+  if (cfg && hashMatch === false && result.kind === "verified") {
+    cfg = {
+      ...cfg,
+      icon: AlertTriangle,
+      title: "Envelope Valid, File Tampered",
+      color: "text-destructive",
+      bg: "bg-destructive/10",
+      border: "border-destructive/20"
+    };
+  }
   const ResIcon = cfg?.icon;
 
   return (
@@ -359,7 +369,7 @@ export default function VerifyDocument() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className={`text-xl font-semibold ${cfg.color}`}>{cfg.title}</h2>
-                  {result.kind === "verified" && <StatusBadge status="verified" />}
+                  {result.kind === "verified" && hashMatch !== false && <StatusBadge status="verified" />}
                   {result.kind === "not_verified" && <StatusBadge status="unable to verify" />}
                   {result.kind === "not_found" && <StatusBadge status="not found" />}
                 </div>
@@ -373,7 +383,9 @@ export default function VerifyDocument() {
                   </p>
                 ) : result.kind === "verified" ? (
                   <p className="mt-1.5 text-sm text-muted-foreground">
-                    Chain and evidence checks passed. Optional blockchain witness is not required for verified status.
+                    {hashMatch === false 
+                      ? "The envelope's blockchain record and audit log are valid, but they do NOT match the uploaded PDF."
+                      : "Chain and evidence checks passed. Optional blockchain witness is not required for verified status."}
                   </p>
                 ) : (
                   <p className="mt-1.5 text-sm text-muted-foreground">

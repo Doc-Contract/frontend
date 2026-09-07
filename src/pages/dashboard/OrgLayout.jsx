@@ -26,6 +26,7 @@ const navGroups = [
     label: "Trust Registry",
     items: [
       { label: "Issue Document", path: "/app/organization/issue", icon: FilePlus2 },
+      { label: "Bulk Issue", path: "/app/organization/bulk-issue", icon: FilePlus2 },
       { label: "Issued Documents", path: "/app/organization/issued", icon: FileText },
       { label: "Verify Document", path: "/app/organization/verify", icon: ShieldCheck },
       { label: "Revoked and Superseded", path: "/app/organization/revoked", icon: Ban },

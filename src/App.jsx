@@ -22,6 +22,7 @@ import IndividualLayout from "@/pages/dashboard/IndividualLayout";
 import AdminLayout from "@/pages/dashboard/AdminLayout";
 import OrgOverview from "@/pages/dashboard/org/OrgOverview";
 import ApprovalPending from "@/pages/dashboard/org/ApprovalPending";
+import BulkIssue from "@/pages/dashboard/org/BulkIssue";
 import IndividualOverview from "@/pages/dashboard/individual/IndividualOverview";
 import AdminOverview from "@/pages/dashboard/admin/AdminOverview";
 import PlaceholderPage from "@/pages/dashboard/PlaceholderPage";
@@ -74,6 +75,7 @@ function App() {
                     />
                   }
                 />
+                <Route path="bulk-issue" element={<BulkIssue />} />
                 <Route path="verify" element={<Navigate to="/verify" replace />} />
                 <Route
                   path="revoked"

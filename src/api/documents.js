@@ -27,4 +27,15 @@ export const envelopesApi = {
     }),
   send: (id, orgId) =>
     apiFetch(`/envelopes/${id}/send`, { method: "POST", withOrg: true, orgId }),
+  bulkIssue: (zipFile, csvFile, orgId) => {
+    const form = new FormData();
+    form.append("zip", zipFile);
+    form.append("csv", csvFile);
+    return apiFetch("/envelopes/bulk", {
+      method: "POST",
+      body: form,
+      orgId,
+      withOrg: true,
+    });
+  },
 };
