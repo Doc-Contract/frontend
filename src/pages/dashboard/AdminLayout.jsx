@@ -30,7 +30,7 @@ import { useAuth } from "@/lib/AuthContext";
 export default function AdminLayout() {
   const { user } = useAuth();
 
-  if (!user?.is_admin) {
+  if (!user?.is_admin && !user?.is_superadmin) {
     return <Navigate to="/app" replace />;
   }
 

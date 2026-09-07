@@ -15,7 +15,7 @@ export default function DashboardRouter() {
       return;
     }
 
-    if (user.is_admin) {
+    if (user.is_admin || user.is_superadmin) {
       setState("admin");
       return;
     }

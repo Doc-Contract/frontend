@@ -130,9 +130,21 @@ export default function Login() {
     try {
       const loggedUser = await login(cleanEmail, password, portal);
 
-      // 1. Admin portal check: Must be an administrator
+      const isSuperAdmin = Boolean(loggedUser?.is_superadmin || loggedUser?.is_admin);
+
+      // 1. Super-admin check: Allowed ONLY through the Admin tab
+      if (isSuperAdmin) {
+        if (portal !== "admin") {
+          await logout(false);
+          setError("This is an administrator account. Please use the Admin tab to log in.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      // 2. Admin portal check: Must be an administrator
       if (portal === "admin") {
-        if (!loggedUser?.is_admin) {
+        if (!isSuperAdmin) {
           await logout(false);
           setError("Access Denied: This account does not have administrator privileges. Please switch to the Individual or University portal.");
           setLoading(false);
@@ -140,8 +152,8 @@ export default function Login() {
         }
       }
 
-      // 2. University portal check: Must NOT be an individual account
-      else if (portal === "university") {
+      // 3. University / Organization portal check: Must NOT be an individual account
+      else if (portal === "university" || portal === "organization") {
         if (loggedUser?.account_type === "individual") {
           await logout(false);
           setError("Account Role Mismatch: This account is registered as an Individual. Please switch to the Individual portal above to log in.");
@@ -150,14 +162,20 @@ export default function Login() {
         }
       }
 
-      // 3. Individual portal check: If registered as organization, direct to university portal
+      // 4. Individual portal check: Must NOT be an organization account
       else if (portal === "individual") {
-        if (loggedUser?.account_type === "organization" && !loggedUser?.is_admin) {
+        if (loggedUser?.account_type === "organization") {
           await logout(false);
           setError("Account Role Mismatch: This account is registered as an Institutional/University account. Please switch to the University portal above to access your issuing workspace.");
           setLoading(false);
           return;
         }
+      }
+
+      // After successful login through the Admin tab, redirect the user to the Admin Dashboard.
+      if (portal === "admin" || isSuperAdmin) {
+        navigate("/app/admin", { replace: true });
+        return;
       }
 
       navigate(returnTo, { replace: true });
@@ -446,6 +464,17 @@ export default function Login() {
                         <p className="text-red-700 leading-5">
                           {error}
                         </p>
+
+                        {(error.includes("Admin tab") || error.includes("administrator account")) && portal !== "admin" && (
+                          <button
+                            type="button"
+                            onClick={() => handlePortalSwitch("admin")}
+                            className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-100/90 text-xs font-bold text-red-800 hover:bg-red-200 transition-colors"
+                          >
+                            <span>Switch to Admin Tab</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+                        )}
 
                         {error.includes("Individual portal") && portal !== "individual" && (
                           <button
