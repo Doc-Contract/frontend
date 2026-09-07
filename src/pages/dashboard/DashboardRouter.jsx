@@ -29,7 +29,7 @@ export default function DashboardRouter() {
         setState("onboard");
       } else {
         const org = user.organizations?.[0];
-        if (org && org.status === "pending") {
+        if (org && (org.status === "pending" || org.is_verified === false)) {
           setState("pending");
         } else {
           setState("org");

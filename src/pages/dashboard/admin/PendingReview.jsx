@@ -1,63 +1,38 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Building2, Clock, BadgeCheck, Ban, Loader2, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
+import { Building2, Clock, BadgeCheck, Loader2, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { orgsApi } from "@/api/orgs";
 
-export default function AdminOverview() {
+export default function PendingReview() {
   const [orgs, setOrgs] = useState([]);
-  const [stats, setStats] = useState({
-    pending_count: 0,
-    verified_count: 0,
-    suspended_count: 0,
-    total_count: 0,
-  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [approvingId, setApprovingId] = useState(null);
   const [toastMsg, setToastMsg] = useState("");
 
-  const fetchDashboardData = useCallback(async () => {
+  const fetchPending = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const [pendingData, statsData] = await Promise.all([
-        orgsApi.getPending(),
-        orgsApi.getStats(),
-      ]);
-      const pendingList = Array.isArray(pendingData) ? pendingData : [];
-      setOrgs(pendingList);
-      if (statsData) {
-        setStats({
-          pending_count: statsData.pending_count ?? pendingList.length,
-          verified_count: statsData.verified_count ?? 0,
-          suspended_count: statsData.suspended_count ?? 0,
-          total_count: statsData.total_count ?? (pendingList.length + (statsData.verified_count || 0)),
-        });
-      } else {
-        setStats({
-          pending_count: pendingList.length,
-          verified_count: 0,
-          suspended_count: 0,
-          total_count: pendingList.length,
-        });
-      }
+      const data = await orgsApi.getPending();
+      setOrgs(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError(err.message || "Failed to load admin dashboard data.");
+      setError(err.message || "Failed to load pending organizations.");
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
+    fetchPending();
+  }, [fetchPending]);
 
   const handleVerify = async (orgId, orgName) => {
     if (approvingId) return; // Prevent duplicate approval requests
     setApprovingId(orgId);
     try {
       await orgsApi.verify(orgId);
-      await fetchDashboardData();
+      await fetchPending();
       setToastMsg(`✓ "${orgName}" has been verified and can now issue documents.`);
       setTimeout(() => setToastMsg(""), 4000);
     } catch (err) {
@@ -70,19 +45,18 @@ export default function AdminOverview() {
 
   return (
     <div className="space-y-6">
-
       {/* TOAST */}
       {toastMsg && (
-        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-xl px-5 py-4 text-sm font-medium shadow-xl transition-all
-          ${toastMsg.startsWith("✓")
-            ? "bg-emerald-600 text-white"
-            : "bg-red-600 text-white"
+        <div
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-xl px-5 py-4 text-sm font-medium shadow-xl transition-all ${
+            toastMsg.startsWith("✓") ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
           }`}
         >
-          {toastMsg.startsWith("✓")
-            ? <CheckCircle2 className="h-4 w-4 shrink-0" />
-            : <AlertCircle className="h-4 w-4 shrink-0" />
-          }
+          {toastMsg.startsWith("✓") ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+          ) : (
+            <AlertCircle className="h-4 w-4 shrink-0" />
+          )}
           {toastMsg}
         </div>
       )}
@@ -90,74 +64,26 @@ export default function AdminOverview() {
       {/* HEADER */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground font-heading">Admin Portal</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground font-heading">
+            Pending Review
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Review and approve organization applications before they can issue documents.
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchDashboardData} disabled={loading}>
+        <Button variant="outline" size="sm" onClick={fetchPending} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </Button>
-      </div>
-
-      {/* STATS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
-              <Clock className="h-5 w-5 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{loading ? "—" : stats.pending_count}</p>
-              <p className="text-xs text-muted-foreground">Pending Review</p>
-            </div>
-          </div>
-        </div>
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
-              <BadgeCheck className="h-5 w-5 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{loading ? "—" : stats.verified_count}</p>
-              <p className="text-xs text-muted-foreground">Verified Issuers</p>
-            </div>
-          </div>
-        </div>
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100">
-              <Ban className="h-5 w-5 text-red-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{loading ? "—" : (stats.suspended_count || 0)}</p>
-              <p className="text-xs text-muted-foreground">Suspended</p>
-            </div>
-          </div>
-        </div>
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-              <Building2 className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">
-                {loading ? "—" : !stats.verified_count ? 0 : stats.total_count}
-              </p>
-              <p className="text-xs text-muted-foreground">Total Organizations</p>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* PENDING LIST */}
       <div className="rounded-xl border border-border bg-card shadow-sm">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div>
-            <h2 className="text-base font-semibold text-foreground">Pending Verification</h2>
+            <h2 className="text-base font-semibold text-foreground">Pending Organizations</h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              These organizations are awaiting admin approval to issue documents.
+              Organizations awaiting verification review.
             </p>
           </div>
           {!loading && orgs.length > 0 && (
@@ -186,7 +112,9 @@ export default function AdminOverview() {
               <BadgeCheck className="h-7 w-7 text-emerald-600" />
             </div>
             <p className="mt-4 text-sm font-medium text-foreground">All clear!</p>
-            <p className="mt-1 text-sm text-muted-foreground">No organizations are pending verification.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              No organizations are pending verification.
+            </p>
           </div>
         )}
 
@@ -230,7 +158,6 @@ export default function AdminOverview() {
           </ul>
         )}
       </div>
-
     </div>
   );
 }

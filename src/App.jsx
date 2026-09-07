@@ -25,6 +25,9 @@ import ApprovalPending from "@/pages/dashboard/org/ApprovalPending";
 import BulkIssue from "@/pages/dashboard/org/BulkIssue";
 import IndividualOverview from "@/pages/dashboard/individual/IndividualOverview";
 import AdminOverview from "@/pages/dashboard/admin/AdminOverview";
+import PendingReview from "@/pages/dashboard/admin/PendingReview";
+import VerifiedIssuers from "@/pages/dashboard/admin/VerifiedIssuers";
+import SuspendedOrgs from "@/pages/dashboard/admin/SuspendedOrgs";
 import PlaceholderPage from "@/pages/dashboard/PlaceholderPage";
 import IssueEnvelope from "@/pages/dashboard/org/IssueEnvelope";
 import EnvelopeList from "@/pages/dashboard/org/EnvelopeList";
@@ -156,9 +159,9 @@ function App() {
 
               <Route path="/app/admin" element={<AdminLayout />}>
                 <Route index element={<AdminOverview />} />
-                <Route path="pending" element={PH("Pending Review", "Map to org admin ops when needed.")} />
-                <Route path="verified" element={PH("Verified Issuers", "Coming soon.")} />
-                <Route path="suspended" element={PH("Suspended", "Coming soon.")} />
+                <Route path="pending" element={<PendingReview />} />
+                <Route path="verified" element={<VerifiedIssuers />} />
+                <Route path="suspended" element={<SuspendedOrgs />} />
                 <Route path="audit" element={PH("Audit Trail", "Platform audit coming soon.")} />
                 <Route path="settings" element={PH("Settings", "Admin settings coming soon.")} />
               </Route>

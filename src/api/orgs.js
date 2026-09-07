@@ -12,6 +12,17 @@ export const orgsApi = {
     }),
   getPending: () =>
     apiFetch("/admin/orgs/pending", { method: "GET" }),
+  getVerified: () =>
+    apiFetch("/admin/orgs/verified", { method: "GET" }),
+  getSuspended: () =>
+    apiFetch("/admin/orgs/suspended", { method: "GET" }),
+  getStats: () =>
+    apiFetch("/admin/stats", { method: "GET" }),
   verify: (orgId) =>
     apiFetch(`/admin/orgs/${orgId}/verify`, { method: "POST" }),
+  suspend: (orgId, reason) =>
+    apiFetch(`/admin/orgs/${orgId}/suspend`, {
+      method: "POST",
+      body: { reason },
+    }),
 };
