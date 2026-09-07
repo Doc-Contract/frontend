@@ -93,6 +93,7 @@ export function AuthProvider({ children }) {
         full_name: res.full_name || res.email?.split("@")[0] || "User",
         account_type: res.account_type,
         has_organization: !!res.has_organization || organizations.length > 0,
+        providers: res.providers || [],
         organizations,
         is_admin: Boolean(res.is_admin || res.is_superadmin),
         is_superadmin: Boolean(res.is_superadmin ?? res.is_admin),
