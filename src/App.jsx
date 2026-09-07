@@ -28,6 +28,8 @@ import AdminOverview from "@/pages/dashboard/admin/AdminOverview";
 import PendingReview from "@/pages/dashboard/admin/PendingReview";
 import VerifiedIssuers from "@/pages/dashboard/admin/VerifiedIssuers";
 import SuspendedOrgs from "@/pages/dashboard/admin/SuspendedOrgs";
+import AuditTrail from "@/pages/dashboard/admin/AuditTrail";
+import AdminSettings from "@/pages/dashboard/admin/AdminSettings";
 import PlaceholderPage from "@/pages/dashboard/PlaceholderPage";
 import IssueEnvelope from "@/pages/dashboard/org/IssueEnvelope";
 import EnvelopeList from "@/pages/dashboard/org/EnvelopeList";
@@ -162,8 +164,8 @@ function App() {
                 <Route path="pending" element={<PendingReview />} />
                 <Route path="verified" element={<VerifiedIssuers />} />
                 <Route path="suspended" element={<SuspendedOrgs />} />
-                <Route path="audit" element={PH("Audit Trail", "Platform audit coming soon.")} />
-                <Route path="settings" element={PH("Settings", "Admin settings coming soon.")} />
+                <Route path="audit" element={<AuditTrail />} />
+                <Route path="settings" element={<AdminSettings />} />
               </Route>
             </Route>
 
