@@ -54,7 +54,8 @@ export function AuthProvider({ children }) {
         has_organization: !!me.has_organization || organizations.length > 0,
         providers: me.providers || [],
         organizations,
-        is_admin: me.is_admin || false,
+        is_admin: Boolean(me.is_admin || me.is_superadmin),
+        is_superadmin: Boolean(me.is_superadmin ?? me.is_admin),
       };
       setUser(profile);
       setIsAuthenticated(true);
@@ -93,7 +94,8 @@ export function AuthProvider({ children }) {
         account_type: res.account_type,
         has_organization: !!res.has_organization || organizations.length > 0,
         organizations,
-        is_admin: res.is_admin || false,
+        is_admin: Boolean(res.is_admin || res.is_superadmin),
+        is_superadmin: Boolean(res.is_superadmin ?? res.is_admin),
       };
       setUser(profile);
       setIsAuthenticated(true);
