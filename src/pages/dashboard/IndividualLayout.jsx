@@ -26,13 +26,13 @@ const navGroups = [
       { label: "Verification History", path: "/app/individual/verification-history", icon: History },
     ],
   },
-  {
-    label: "eSign",
-    items: [
-      { label: "Awaiting My Signature", path: "/app/individual/awaiting-signature", icon: PenLine },
-      { label: "Completed Documents", path: "/app/individual/completed-docs", icon: CheckCircle2 },
-    ],
-  },
+  // {
+  //   label: "eSign",
+  //   items: [
+  //     { label: "Awaiting My Signature", path: "/app/individual/awaiting-signature", icon: PenLine },
+  //     { label: "Completed Documents", path: "/app/individual/completed-docs", icon: CheckCircle2 },
+  //   ],
+  // },
   {
     label: "Account",
     items: [

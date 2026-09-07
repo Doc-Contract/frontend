@@ -31,15 +31,15 @@ const navGroups = [
       { label: "Revoked and Superseded", path: "/app/organization/revoked", icon: Ban },
     ],
   },
-  {
-    label: "eSign",
-    items: [
-      { label: "Send for Signature", path: "/app/organization/send", icon: Send },
-      { label: "Drafts", path: "/app/organization/drafts", icon: FileEdit },
-      { label: "Awaiting Signatures", path: "/app/organization/awaiting", icon: PenLine },
-      { label: "Completed", path: "/app/organization/completed", icon: CheckCircle2 },
-    ],
-  },
+  // {
+  //   label: "eSign",
+  //   items: [
+  //     { label: "Send for Signature", path: "/app/organization/send", icon: Send },
+  //     { label: "Drafts", path: "/app/organization/drafts", icon: FileEdit },
+  //     { label: "Awaiting Signatures", path: "/app/organization/awaiting", icon: PenLine },
+  //     { label: "Completed", path: "/app/organization/completed", icon: CheckCircle2 },
+  //   ],
+  // },
   {
     label: "Organization",
     items: [

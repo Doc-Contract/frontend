@@ -25,7 +25,7 @@ import {
 
 const TABS = [
   { id: "id", label: "Document ID", icon: Hash },
-  { id: "pdf", label: "Upload PDF", icon: FileUp, soon: true },
+  { id: "pdf", label: "Upload PDF", icon: FileUp },
   { id: "qr", label: "Scan QR", icon: QrCode, soon: true },
 ];
 
@@ -73,6 +73,9 @@ export default function VerifyDocument() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [showProof, setShowProof] = useState(false);
+  const [pdfFile, setPdfFile] = useState(null);
+  const [hashMatch, setHashMatch] = useState(null);
+  const [computedHash, setComputedHash] = useState("");
 
   const runVerification = async (id) => {
     const value = (id || "").trim();
@@ -110,6 +113,65 @@ export default function VerifyDocument() {
       } else {
         setError(err.message || "Verification request failed");
         setResult({ kind: "unable_to_verify", envelope_id: value });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePdfSubmit = async (e) => {
+    e.preventDefault();
+    if (!pdfFile || !envelopeId.trim()) {
+      setError("Please provide both a PDF file and an Envelope UUID.");
+      return;
+    }
+    setLoading(true);
+    setResult(null);
+    setError("");
+    setHashMatch(null);
+    setComputedHash("");
+    setShowProof(false);
+    try {
+      // 1. Compute hash
+      const arrayBuffer = await pdfFile.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+      setComputedHash(hashHex);
+
+      // 2. Fetch envelope data
+      const data = await verifyApi.byEnvelopeId(envelopeId.trim());
+      const res = {
+        kind: data.verified ? "verified" : "not_verified",
+        envelope_id: data.envelope_id || envelopeId.trim(),
+        verified: !!data.verified,
+        chain_integrity: data.chain_integrity,
+        tsa_status: data.tsa_status,
+        tsa_anchor_match: data.tsa_anchor_match,
+        cms_signature_verified: data.cms_signature_verified,
+        blockchain_anchored: data.blockchain_anchored,
+        blockchain_txid: data.blockchain_txid,
+        blockchain_network: data.blockchain_network,
+        event_count: data.event_count ?? (Array.isArray(data.events) ? data.events.length : undefined),
+        events: data.events,
+        final_event_hash: data.final_event_hash,
+        document_hashes: data.document_hashes,
+        raw: data,
+      };
+      setResult(res);
+
+      // 3. Check for match
+      if (res.document_hashes && res.document_hashes.includes(hashHex)) {
+        setHashMatch(true);
+      } else {
+        setHashMatch(false);
+      }
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        setResult({ kind: "not_found", envelope_id: envelopeId.trim() });
+      } else {
+        setError(err.message || "Verification request failed");
+        setResult({ kind: "unable_to_verify", envelope_id: envelopeId.trim() });
       }
     } finally {
       setLoading(false);
@@ -166,6 +228,9 @@ export default function VerifyDocument() {
                 setTab(t.id);
                 setResult(null);
                 setError("");
+                setHashMatch(null);
+                setComputedHash("");
+                setPdfFile(null);
               }}
               className={`flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-colors ${
                 tab === t.id
@@ -209,16 +274,50 @@ export default function VerifyDocument() {
             </form>
           )}
 
-          {(tab === "pdf" || tab === "qr") && (
+          {tab === "pdf" && (
+            <form onSubmit={handlePdfSubmit} className="space-y-4 text-left">
+              <div className="space-y-2">
+                <Label htmlFor="pdfEnvelopeId">Envelope UUID</Label>
+                <Input
+                  id="pdfEnvelopeId"
+                  value={envelopeId}
+                  onChange={(e) => setEnvelopeId(e.target.value)}
+                  placeholder="e.g. a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d"
+                  className="h-12 font-mono"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pdfFile">PDF File</Label>
+                <Input
+                  id="pdfFile"
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+                  className="h-12 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-secondary-foreground hover:file:bg-secondary/80"
+                />
+              </div>
+              <Button type="submit" className="w-full h-12" disabled={loading || !envelopeId.trim() || !pdfFile}>
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifying PDF Hash…
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-4 h-4 mr-2" /> Verify PDF Integrity
+                  </>
+                )}
+              </Button>
+            </form>
+          )}
+
+          {tab === "qr" && (
             <div className="text-center py-8">
               <div className="mx-auto w-16 h-16 rounded-2xl border-2 border-dashed border-border bg-muted/40 flex items-center justify-center text-muted-foreground mb-4">
-                {tab === "pdf" ? <FileUp className="w-8 h-8" /> : <QrCode className="w-8 h-8" />}
+                <QrCode className="w-8 h-8" />
               </div>
               <p className="text-sm font-medium text-foreground">Coming soon</p>
               <p className="mt-1.5 text-sm text-muted-foreground max-w-sm mx-auto">
-                {tab === "pdf"
-                  ? "PDF hash verification will land in a later phase. For now, verify by envelope UUID."
-                  : "Camera QR scanning will land in a later phase. For now, verify by envelope UUID."}
+                Camera QR scanning will land in a later phase. For now, verify by envelope UUID.
               </p>
               <Button type="button" variant="outline" className="mt-5" onClick={() => setTab("id")}>
                 Use document ID instead
@@ -239,6 +338,20 @@ export default function VerifyDocument() {
 
         {!loading && result && cfg && (
           <div className={`mt-6 rounded-2xl border-2 ${cfg.border} ${cfg.bg} p-6`}>
+            {tab === "pdf" && hashMatch !== null && result.kind !== "not_found" && result.kind !== "unable_to_verify" && (
+              <div className={`mb-6 rounded-xl border p-4 flex items-start gap-3 ${hashMatch ? "bg-success/10 border-success/30" : "bg-destructive/10 border-destructive/30"}`}>
+                {hashMatch ? <CheckCircle2 className="w-5 h-5 mt-0.5 shrink-0 text-success" /> : <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0 text-destructive" />}
+                <div>
+                  <p className={`font-semibold ${hashMatch ? "text-success" : "text-destructive"}`}>{hashMatch ? "PDF Integrity Verified" : "PDF Integrity Failed - Tampering Detected"}</p>
+                  <p className="text-sm mt-1 text-muted-foreground">
+                    {hashMatch 
+                      ? "The uploaded PDF's digital fingerprint perfectly matches the cryptographic proof anchored to the blockchain."
+                      : "The uploaded PDF's digital fingerprint does NOT match the proof on the blockchain. The document has been modified after it was issued."}
+                  </p>
+                  <p className="text-xs font-mono mt-2 break-all text-muted-foreground opacity-80">Computed hash: {computedHash}</p>
+                </div>
+              </div>
+            )}
             <div className="flex items-start gap-4">
               <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${cfg.bg} ${cfg.color} shrink-0`}>
                 <ResIcon className="w-6 h-6" />
