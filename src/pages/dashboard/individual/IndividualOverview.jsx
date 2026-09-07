@@ -13,23 +13,18 @@ import {
   Download,
 } from "lucide-react";
 
-const MOCK_STATS = {
-  received_documents: 12,
-  active_credentials: 10,
-  awaiting_signature: 2,
-  completed_signatures: 8,
-};
-
-const MOCK_DOCS = [
-  { id: "demo-1", title: "B.Sc. Computer Science", issuer: "Northgate University", status: "active", date: "2025-06-14" },
-  { id: "demo-2", title: "AWS Cloud Practitioner", issuer: "CloudSkill Institute", status: "active", date: "2025-03-02" },
-  { id: "demo-3", title: "Service Agreement", issuer: "Acme Corp", status: "awaiting", date: "2025-08-10" },
-];
-
 export default function IndividualOverview() {
   const [loading, setLoading] = useState(true);
+  const [docs, setDocs] = useState([]);
+  const [stats, setStats] = useState({
+    received_documents: 0,
+    active_credentials: 0,
+    awaiting_signature: 0,
+    completed_signatures: 0,
+  });
+
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 700);
+    const t = setTimeout(() => setLoading(false), 400);
     return () => clearTimeout(t);
   }, []);
 
@@ -45,28 +40,28 @@ export default function IndividualOverview() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="Received Documents"
-          value={loading ? null : MOCK_STATS.received_documents}
+          value={loading ? null : stats.received_documents}
           icon={Inbox}
           tone="blue"
           loading={loading}
         />
         <StatCard
           label="Active Credentials"
-          value={loading ? null : MOCK_STATS.active_credentials}
+          value={loading ? null : stats.active_credentials}
           icon={BadgeCheck}
           tone="green"
           loading={loading}
         />
         <StatCard
           label="Awaiting My Signature"
-          value={loading ? null : MOCK_STATS.awaiting_signature}
+          value={loading ? null : stats.awaiting_signature}
           icon={PenLine}
           tone="amber"
           loading={loading}
         />
         <StatCard
           label="Completed Signatures"
-          value={loading ? null : MOCK_STATS.completed_signatures}
+          value={loading ? null : stats.completed_signatures}
           icon={CheckCircle2}
           tone="green"
           loading={loading}
@@ -85,11 +80,11 @@ export default function IndividualOverview() {
         </div>
         {loading ? (
           <LoadingState />
-        ) : MOCK_DOCS.length === 0 ? (
+        ) : docs.length === 0 ? (
           <EmptyState title="No documents yet" description="Documents issued to you will appear here." />
         ) : (
           <ul className="divide-y divide-border">
-            {MOCK_DOCS.map((d) => (
+            {docs.map((d) => (
               <li key={d.id} className="flex items-center justify-between gap-4 p-4">
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{d.title}</p>
