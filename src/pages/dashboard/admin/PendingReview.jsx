@@ -120,41 +120,47 @@ export default function PendingReview() {
 
         {!loading && !error && orgs.length > 0 && (
           <ul className="divide-y divide-border">
-            {orgs.map((org) => (
-              <li key={org.ID} className="flex items-center justify-between gap-4 px-5 py-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
+            {orgs.map((org) => {
+              const orgId = org.id || org.ID;
+              const orgName = org.name || org.Name;
+              const orgSlug = org.slug || org.Slug;
+
+              return (
+                <li key={orgId} className="flex items-center justify-between gap-4 px-5 py-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">{orgName || "Unnamed Organization"}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        Slug: {orgSlug || "—"} &middot; ID: {orgId ? `${orgId.slice(0, 8)}…` : "—"}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">{org.Name}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      Slug: {org.Slug} &middot; ID: {org.ID?.slice(0, 8)}…
-                    </p>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold text-amber-700">
+                      Pending
+                    </span>
+                    <Button
+                      size="sm"
+                      onClick={() => handleVerify(orgId, orgName)}
+                      disabled={approvingId === orgId}
+                      className="min-w-[90px]"
+                    >
+                      {approvingId === orgId ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <>
+                          <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+                          Approve
+                        </>
+                      )}
+                    </Button>
                   </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold text-amber-700">
-                    Pending
-                  </span>
-                  <Button
-                    size="sm"
-                    onClick={() => handleVerify(org.ID, org.Name)}
-                    disabled={approvingId === org.ID}
-                    className="min-w-[90px]"
-                  >
-                    {approvingId === org.ID ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <>
-                        <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
-                        Approve
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
