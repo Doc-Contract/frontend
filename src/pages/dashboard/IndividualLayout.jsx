@@ -7,7 +7,6 @@ import {
   History,
   PenLine,
   CheckCircle2,
-  Wallet,
   UserCircle,
   Lock,
   Bell,
@@ -36,7 +35,6 @@ const navGroups = [
   {
     label: "Account",
     items: [
-      { label: "Wallet", path: "/app/individual/wallet", icon: Wallet },
       { label: "Profile", path: "/app/individual/profile", icon: UserCircle },
       { label: "Security", path: "/app/individual/security", icon: Lock },
       { label: "Notification Preferences", path: "/app/individual/notifications", icon: Bell },

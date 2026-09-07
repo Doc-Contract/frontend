@@ -98,14 +98,16 @@ export default function ReviewStep({
           )}
         </ReviewCard>
 
-        {/* WALLET */}
-        <ReviewCard
-          icon={Wallet}
-          title="Wallet"
-          onEdit={() => setStep(2)}
-        >
-          <WalletReview data={data} />
-        </ReviewCard>
+        {/* WALLET (Organizations only) */}
+        {!isIndividual && (
+          <ReviewCard
+            icon={Wallet}
+            title="Wallet"
+            onEdit={() => setStep(2)}
+          >
+            <WalletReview data={data} />
+          </ReviewCard>
+        )}
       </div>
 
       {/* FINAL SECURITY NOTE */}
@@ -114,7 +116,8 @@ export default function ReviewStep({
 
         <p className="text-xs leading-5 text-slate-500">
           You can update these settings later from your TrustDocs workspace.
-          Your wallet remains optional and does not affect document access.
+          {!isIndividual &&
+            " Your wallet remains optional and does not affect document access."}
         </p>
       </div>
 

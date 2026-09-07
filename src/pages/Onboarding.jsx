@@ -19,7 +19,7 @@ import DetailsStep from "@/components/onboarding/DetailsStep";
 import WalletStep from "@/components/onboarding/WalletStep";
 import ReviewStep from "@/components/onboarding/ReviewStep";
 
-const STEPS = [
+const ORG_STEPS = [
   {
     id: "account_type",
     label: "Choose account type",
@@ -34,6 +34,24 @@ const STEPS = [
     id: "wallet",
     label: "Connect wallet",
     description: "Connect your wallet for document verification",
+  },
+  {
+    id: "review",
+    label: "Review setup",
+    description: "Review your information before continuing",
+  },
+];
+
+const INDIVIDUAL_STEPS = [
+  {
+    id: "account_type",
+    label: "Choose account type",
+    description: "What type of workspace do you need?",
+  },
+  {
+    id: "details",
+    label: "Provide details",
+    description: "Tell us a little about yourself",
   },
   {
     id: "review",
@@ -89,6 +107,18 @@ export default function Onboarding() {
 
   const [errors, setErrors] = useState({});
 
+  const steps = useMemo(() => {
+    return data.account_type === "individual" ? INDIVIDUAL_STEPS : ORG_STEPS;
+  }, [data.account_type]);
+
+  const currentStep = steps[step] || steps[0];
+
+  useEffect(() => {
+    if (step >= steps.length) {
+      setStep(Math.max(0, steps.length - 1));
+    }
+  }, [steps.length, step]);
+
   /* Load existing user information */
   useEffect(() => {
     if (!authChecked || !isAuthenticated || !user) return;
@@ -140,7 +170,7 @@ export default function Onboarding() {
   const handleContinue = () => {
     if (!validateStep()) return;
 
-    if (step < STEPS.length - 1) {
+    if (step < steps.length - 1) {
       setDirection("forward");
       setStep((current) => current + 1);
     }
@@ -167,7 +197,8 @@ export default function Onboarding() {
       wallet_error: "",
     });
 
-    setStep(3);
+    const reviewIndex = steps.findIndex((s) => s.id === "review");
+    setStep(reviewIndex !== -1 ? reviewIndex : step + 1);
 
     scrollToTop();
   };
@@ -348,7 +379,7 @@ export default function Onboarding() {
 
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-400">
-                  Step {step + 1} of {STEPS.length}
+                  Step {step + 1} of {steps.length}
                 </span>
 
                 <span className="h-1 w-1 rounded-full bg-slate-300" />
@@ -364,7 +395,7 @@ export default function Onboarding() {
             <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
 
               <div className="flex items-center">
-                {STEPS.map((s, i) => {
+                {steps.map((s, i) => {
                   const completed = i < step;
                   const current = i === step;
 
@@ -396,7 +427,7 @@ export default function Onboarding() {
                         </div>
                       </div>
 
-                      {i < STEPS.length - 1 && (
+                      {i < steps.length - 1 && (
                         <div
                           className={cn(
                             "mx-2 h-px flex-1 transition-colors duration-300 sm:mx-4",
@@ -415,7 +446,7 @@ export default function Onboarding() {
 
               <div className="mt-2 text-center">
                 <span className="text-xs font-medium text-slate-600">
-                  {STEPS[step].label}
+                  {steps[step]?.label}
                 </span>
               </div>
 
@@ -431,7 +462,6 @@ export default function Onboarding() {
               <section className="min-w-0">
                 <div
                   key={step}
-                  // className="animate-in fade-in slide-in-from-right-4 duration-500"
                   className={cn(
                     "animate-in duration-500 ease-out",
                     direction === "forward"
@@ -439,14 +469,14 @@ export default function Onboarding() {
                       : "slide-in-from-left-8"
                   )}
                 >
-                  {step === 0 && (
+                  {currentStep.id === "account_type" && (
                     <AccountTypeStep
                       data={data}
                       update={update}
                     />
                   )}
 
-                  {step === 1 && (
+                  {currentStep.id === "details" && (
                     <DetailsStep
                       data={data}
                       update={update}
@@ -456,7 +486,7 @@ export default function Onboarding() {
                     />
                   )}
 
-                  {step === 2 && (
+                  {currentStep.id === "wallet" && (
                     <WalletStep
                       data={data}
                       update={update}
@@ -467,7 +497,7 @@ export default function Onboarding() {
                     />
                   )}
 
-                  {step === 3 && (
+                  {currentStep.id === "review" && (
                     <ReviewStep
                       data={data}
                       user={user}
@@ -505,11 +535,11 @@ export default function Onboarding() {
               </Button>
 
 
-              {step < STEPS.length - 1 ? (
+              {step < steps.length - 1 ? (
 
                 <Button
                   onClick={handleContinue}
-                  disabled={saving || walletBusy || (step === 2 && data.wallet_status !== "linked")}
+                  disabled={saving || walletBusy || (currentStep.id === "wallet" && data.wallet_status !== "linked")}
                   className="min-w-[120px] shadow-sm shadow-primary/20"
                 >
                   Continue
@@ -569,7 +599,7 @@ export default function Onboarding() {
                   </span>
 
                   <span className="text-[11px] font-semibold text-white/80">
-                    {Math.round(((step + 1) / STEPS.length) * 100)}%
+                    {Math.round(((step + 1) / steps.length) * 100)}%
                   </span>
                 </div>
 
@@ -580,7 +610,7 @@ export default function Onboarding() {
                     // className="h-full rounded-full bg-[#4F7CCB] transition-all duration-500 ease-out"
                     className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 transition-all duration-500 ease-out"
                     style={{
-                      width: `${((step + 1) / STEPS.length) * 100}%`,
+                      width: `${((step + 1) / steps.length) * 100}%`,
                     }}
                   />
                 </div>
@@ -588,7 +618,7 @@ export default function Onboarding() {
 
               {/* STEPS */}
               <div className="relative">
-                {STEPS.map((s, i) => {
+                {steps.map((s, i) => {
                   const completed = i < step;
                   const current = i === step;
 
@@ -598,7 +628,7 @@ export default function Onboarding() {
                       className="relative flex gap-3.5"
                     >
                       {/* Vertical connecting line */}
-                      {i < STEPS.length - 1 && (
+                      {i < steps.length - 1 && (
                         <div
                           className={cn(
                             "absolute left-[13px] top-7 h-[calc(100%-2px)] w-px transition-colors duration-500",
