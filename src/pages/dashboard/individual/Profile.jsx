@@ -36,7 +36,7 @@ export default function Profile() {
     setError("");
     try {
       const res = await authApi.me();
-      const data = res.data || {};
+      const data = res?.user_id ? res : (res?.data || {});
       setProfile(data);
       setFullName(data.full_name || "");
       setCountry(data.country || "");
@@ -67,7 +67,11 @@ export default function Profile() {
       setSuccessMsg("Profile information updated successfully!");
       // Reload to ensure state parity
       const res = await authApi.me();
-      setProfile(res.data || {});
+      const data = res?.user_id ? res : (res?.data || {});
+      setProfile(data);
+      setFullName(data.full_name || "");
+      setCountry(data.country || "");
+      setWebsite(data.website || "");
       setTimeout(() => setSuccessMsg(""), 4000);
     } catch (err) {
       setError(err.response?.data?.message || err.message || "Failed to update profile");

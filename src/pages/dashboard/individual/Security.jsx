@@ -30,7 +30,7 @@ export default function Security() {
   const [resetSentMsg, setResetSentMsg] = useState("");
 
   useEffect(() => {
-    authApi.me().then((res) => setProfile(res.data)).catch(() => {});
+    authApi.me().then((res) => setProfile(res?.user_id ? res : (res?.data || res))).catch(() => {});
   }, []);
 
   const handleChangePassword = async (e) => {
