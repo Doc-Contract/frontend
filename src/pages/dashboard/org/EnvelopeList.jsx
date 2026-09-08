@@ -27,7 +27,7 @@ export default function EnvelopeList({
   subtitle = "Envelopes for your organization.",
   filter = "all",
   emptyTitle = "No envelopes yet",
-  emptyDescription = "Create one from Issue Document or Send for Signature.",
+  emptyDescription = "Create one from Issue Document.",
 }) {
   const { orgId } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -88,8 +88,8 @@ export default function EnvelopeList({
             title={emptyTitle}
             description={emptyDescription}
             action={
-              <Link to="/app/organization/send">
-                <Button size="sm">Send for signature</Button>
+              <Link to="/app/organization/issue">
+                <Button size="sm">Issue Document</Button>
               </Link>
             }
           />

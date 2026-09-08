@@ -103,12 +103,7 @@ function App() {
                 />
                 <Route
                   path="send"
-                  element={
-                    <IssueEnvelope
-                      title="Send for signature"
-                      subtitle="Upload a PDF, add a signer, and email a signing link."
-                    />
-                  }
+                  element={<Navigate to="/app/organization/issue" replace />}
                 />
                 <Route
                   path="drafts"

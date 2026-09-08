@@ -71,9 +71,6 @@ export default function OrgOverview() {
             Live envelope counts for your organization.
           </p>
         </div>
-        <Link to="/app/organization/send">
-          <Button size="sm">Send for signature</Button>
-        </Link>
       </div>
 
       {error && (

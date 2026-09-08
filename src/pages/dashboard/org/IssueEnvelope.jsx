@@ -9,10 +9,10 @@ import { Loader2, Upload, Send, CheckCircle2, ExternalLink, Copy, ShieldAlert, W
 
 /**
  * Upload PDF → create draft envelope → add signer → send.
- * Used by Issue Document and Send for Signature routes.
+ * Used by Issue Document route.
  */
 export default function IssueEnvelope({
-  title = "Send for signature",
+  title = "Issue Document",
   subtitle = "Upload a PDF, add a signer, and email a signing link.",
 }) {
   const { orgId, user, organizations } = useAuth();
