@@ -13,6 +13,8 @@ import {
   CheckCircle2,
   Loader2,
   ShieldAlert,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -22,6 +24,9 @@ export default function Security() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [changingPassword, setChangingPassword] = useState(false);
   const [sendingReset, setSendingReset] = useState(false);
@@ -144,42 +149,75 @@ export default function Security() {
             <Label htmlFor="current_password" className="text-xs font-medium text-muted-foreground">
               Current Password
             </Label>
-            <Input
-              id="current_password"
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="Enter current password"
-              className="text-sm"
-            />
+            <div className="relative">
+              <Input
+                id="current_password"
+                type={showCurrentPassword ? "text" : "password"}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Enter current password"
+                className="pr-10 text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                tabIndex={-1}
+                aria-label={showCurrentPassword ? "Hide password" : "Show password"}
+              >
+                {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
           <div className="space-y-1.5">
             <Label htmlFor="new_password" className="text-xs font-medium text-muted-foreground">
               New Password
             </Label>
-            <Input
-              id="new_password"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="At least 8 characters"
-              className="text-sm"
-            />
+            <div className="relative">
+              <Input
+                id="new_password"
+                type={showNewPassword ? "text" : "password"}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="At least 8 characters"
+                className="pr-10 text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                tabIndex={-1}
+                aria-label={showNewPassword ? "Hide password" : "Show password"}
+              >
+                {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
           <div className="space-y-1.5">
             <Label htmlFor="confirm_password" className="text-xs font-medium text-muted-foreground">
               Confirm New Password
             </Label>
-            <Input
-              id="confirm_password"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Re-enter new password"
-              className="text-sm"
-            />
+            <div className="relative">
+              <Input
+                id="confirm_password"
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter new password"
+                className="pr-10 text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                tabIndex={-1}
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
           <div className="pt-2">
