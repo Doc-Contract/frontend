@@ -16,6 +16,8 @@ export const authApi = {
   resetPassword: (token, new_password) =>
     axiosInstance.post("/auth/reset-password", { token, new_password }),
   updateProfile: (data) => axiosInstance.put("/auth/me", data),
+  changePassword: (current_password, new_password) =>
+    axiosInstance.post("/auth/change-password", { current_password, new_password }),
   startGoogle: () => {
     window.location.href = googleOAuthRedirectUrl();
   },

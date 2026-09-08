@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useParams } from "react-router-dom";
 import { verifyApi } from "@/api/verify";
 import { ApiError, apiBaseUrl } from "@/api/client";
 import Logo from "@/components/Logo";
@@ -67,8 +67,9 @@ function verifyUiUrl(envelopeId) {
 
 export default function VerifyDocument() {
   const [searchParams] = useSearchParams();
+  const { envelopeId: paramEnvelopeId } = useParams();
   const [tab, setTab] = useState("id");
-  const [envelopeId, setEnvelopeId] = useState(() => searchParams.get("envelope_id") || "");
+  const [envelopeId, setEnvelopeId] = useState(() => paramEnvelopeId || searchParams.get("envelope_id") || searchParams.get("id") || "");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
@@ -179,13 +180,13 @@ export default function VerifyDocument() {
   };
 
   useEffect(() => {
-    const fromQuery = searchParams.get("envelope_id");
-    if (fromQuery) {
-      setEnvelopeId(fromQuery);
-      runVerification(fromQuery);
+    const target = paramEnvelopeId || searchParams.get("envelope_id") || searchParams.get("id");
+    if (target) {
+      setEnvelopeId(target);
+      runVerification(target);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once when query is present
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paramEnvelopeId]);
 
   const handleIdSubmit = (e) => {
     e.preventDefault();

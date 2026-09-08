@@ -24,6 +24,12 @@ import OrgOverview from "@/pages/dashboard/org/OrgOverview";
 import ApprovalPending from "@/pages/dashboard/org/ApprovalPending";
 import BulkIssue from "@/pages/dashboard/org/BulkIssue";
 import IndividualOverview from "@/pages/dashboard/individual/IndividualOverview";
+import ReceivedDocuments from "@/pages/dashboard/individual/ReceivedDocuments";
+import SharedDocuments from "@/pages/dashboard/individual/SharedDocuments";
+import VerificationHistory from "@/pages/dashboard/individual/VerificationHistory";
+import Profile from "@/pages/dashboard/individual/Profile";
+import Security from "@/pages/dashboard/individual/Security";
+import NotificationPreferences from "@/pages/dashboard/individual/NotificationPreferences";
 import AdminOverview from "@/pages/dashboard/admin/AdminOverview";
 import PendingReview from "@/pages/dashboard/admin/PendingReview";
 import VerifiedIssuers from "@/pages/dashboard/admin/VerifiedIssuers";
@@ -47,6 +53,7 @@ function App() {
             <Route path="/choose-portal" element={<PortalSelect />} />
             <Route path="/portal" element={<Navigate to="/choose-portal" replace />} />
             <Route path="/verify" element={<VerifyDocument />} />
+            <Route path="/verify/:envelopeId" element={<VerifyDocument />} />
             <Route path="/sign/:token" element={<SignDocument />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -148,15 +155,15 @@ function App() {
 
               <Route path="/app/individual" element={<IndividualLayout />}>
                 <Route index element={<IndividualOverview />} />
-                <Route path="received" element={PH("Received Documents", "Signer flows use /sign/{token} — wire next.")} />
-                <Route path="shared" element={PH("Shared Documents", "Coming soon.")} />
-                <Route path="verification-history" element={PH("Verification History", "Coming soon.")} />
+                <Route path="received" element={<ReceivedDocuments />} />
+                <Route path="shared" element={<SharedDocuments />} />
+                <Route path="verification-history" element={<VerificationHistory />} />
                 <Route path="awaiting-signature" element={PH("Awaiting My Signature", "Open signing links from invite emails.")} />
                 <Route path="completed-docs" element={PH("Completed Documents", "Coming soon.")} />
                 <Route path="wallet" element={PH("Wallet", "Link MetaMask during onboarding or later.")} />
-                <Route path="profile" element={PH("Profile", "Session email from GET /auth/me.")} />
-                <Route path="security" element={PH("Security", "Password reset via /forgot-password.")} />
-                <Route path="notifications" element={PH("Notification Preferences", "Coming soon.")} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="security" element={<Security />} />
+                <Route path="notifications" element={<NotificationPreferences />} />
               </Route>
 
               <Route path="/app/admin" element={<AdminLayout />}>
